@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Appointment, Patient, AppointmentStatus } from "@/types/database";
 import { ClinicService } from "@/lib/services/clinicService";
-import { Calendar, Clock, User, AlignLeft } from "lucide-react";
+import { Calendar, Clock, User, AlignLeft, CalendarPlus } from "lucide-react";
+import { generateGoogleCalendarUrl } from "@/lib/utils/calendar";
 
 interface AppointmentFormModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export function AppointmentFormModal({
   const [duracionMinutos, setDuracionMinutos] = React.useState(50);
   const [motivo, setMotivo] = React.useState("");
   const [notas, setNotas] = React.useState("");
+  const [syncGoogleCalendar, setSyncGoogleCalendar] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -71,6 +73,15 @@ export function AppointmentFormModal({
         motivo: motivo || null,
         notas: notas || null,
       });
+
+      if (syncGoogleCalendar) {
+        try {
+          const gcalUrl = generateGoogleCalendarUrl(newAppt);
+          window.open(gcalUrl, "_blank");
+        } catch (calErr) {
+          console.warn("No se pudo abrir Google Calendar automáticamente:", calErr);
+        }
+      }
 
       onSuccess(newAppt);
       onClose();
@@ -168,6 +179,21 @@ export function AppointmentFormModal({
           value={notas}
           onChange={(e) => setNotas(e.target.value)}
         />
+
+        <div className="p-3 rounded-xl bg-sky-50/70 border border-sky-100 flex items-center justify-between gap-3 text-xs">
+          <label className="flex items-center gap-2 text-slate-700 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={syncGoogleCalendar}
+              onChange={(e) => setSyncGoogleCalendar(e.target.checked)}
+              className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300"
+            />
+            <span className="font-medium">
+              Sincronizar con Google Calendar (alarma y notificación en tu móvil)
+            </span>
+          </label>
+          <CalendarPlus className="w-4 h-4 text-sky-600 shrink-0" />
+        </div>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
           <Button type="button" variant="outline" onClick={onClose} disabled={loading}>

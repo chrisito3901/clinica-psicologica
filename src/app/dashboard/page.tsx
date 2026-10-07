@@ -20,8 +20,10 @@ import {
   User,
   HeartPulse,
   Sparkles,
+  CalendarPlus,
 } from "lucide-react";
 import Link from "next/link";
+import { generateGoogleCalendarUrl } from "@/lib/utils/calendar";
 import { PatientFormModal } from "@/components/patients/PatientFormModal";
 import { AppointmentFormModal } from "@/components/appointments/AppointmentFormModal";
 
@@ -290,17 +292,30 @@ export default function DashboardPage() {
                         Expediente Clínico →
                       </Link>
 
-                      {isPending && (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleCompleteAppointment(appt.id)}
-                          className="text-xs h-7 px-2.5"
+                      <div className="flex items-center gap-1.5">
+                        <a
+                          href={generateGoogleCalendarUrl(appt)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium text-slate-600 hover:text-sky-700 hover:bg-sky-50 border border-slate-200 transition-colors"
+                          title="Sincronizar con Google Calendar (alarma en tu celular)"
                         >
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Completar</span>
-                        </Button>
-                      )}
+                          <CalendarPlus className="w-3.5 h-3.5 text-sky-600" />
+                          <span className="hidden sm:inline">Google Cal</span>
+                        </a>
+
+                        {isPending && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleCompleteAppointment(appt.id)}
+                            className="text-xs h-7 px-2.5"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Completar</span>
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </Card>
                 );

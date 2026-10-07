@@ -20,8 +20,10 @@ import {
   Trash2,
   FileText,
   AlertCircle,
+  CalendarPlus,
 } from "lucide-react";
 import Link from "next/link";
+import { generateGoogleCalendarUrl } from "@/lib/utils/calendar";
 import { AppointmentFormModal } from "@/components/appointments/AppointmentFormModal";
 import { cn } from "@/lib/utils";
 
@@ -368,6 +370,16 @@ export default function AgendaPage() {
                           )}
 
                           <div className="flex items-center gap-1.5">
+                            <a
+                              href={generateGoogleCalendarUrl(appt)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors cursor-pointer"
+                              title="Sincronizar / Añadir a Google Calendar (alarma en tu celular)"
+                            >
+                              <CalendarPlus className="w-4 h-4 text-sky-600" />
+                            </a>
+
                             {appt.estado === "programada" && (
                               <button
                                 onClick={() => handleStatusChange(appt.id, "completada")}
