@@ -151,21 +151,41 @@ function PatientDetailContent({
         }
       />
 
-      <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-8">
+      <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-8 print:p-0 print:max-w-none print:space-y-6">
+        {/* CABECERA OFICIAL DE IMPRESIÓN (Visible ÚNICAMENTE en impresión/PDF) */}
+        <div className="hidden print:block pb-4 mb-6 border-b-2 border-slate-800">
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900">
+                Clínica Psicológica MenteSana
+              </h1>
+              <p className="text-xs font-semibold text-slate-600 mt-0.5">
+                Expediente Clínico & Registro de Evolución Terapéutica
+              </p>
+            </div>
+            <div className="text-right text-[11px] text-slate-600">
+              <span className="inline-block px-2 py-0.5 rounded font-bold text-[10px] uppercase bg-slate-100 border border-slate-300 text-slate-800 mb-1">
+                Documento Confidencial
+              </span>
+              <p>Fecha de emisión: {new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}</p>
+            </div>
+          </div>
+        </div>
+
         {/* ENLACE DE RETORNO */}
         <Link
           href="/pacientes"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-sky-600 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-sky-600 transition-colors print:hidden"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Volver al Directorio de Pacientes</span>
         </Link>
 
         {/* FICHA RESUMEN DEL PACIENTE */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6 print:border print:border-slate-300 print:shadow-none print:p-5 print:rounded-2xl print:space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 print:border-slate-300 print:pb-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-600 to-teal-500 text-white font-bold text-xl flex items-center justify-center shadow-md shadow-sky-500/20">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-600 to-teal-500 text-white font-bold text-xl flex items-center justify-center shadow-md shadow-sky-500/20 print:hidden">
                 {patient.nombre
                   .split(" ")
                   .map((n) => n[0])
@@ -178,7 +198,7 @@ function PatientDetailContent({
                   <h2 className="text-xl sm:text-2xl font-bold text-slate-800">
                     {patient.nombre}
                   </h2>
-                  <Badge variant={patient.estado === "activo" ? "success" : "neutral"}>
+                  <Badge variant={patient.estado === "activo" ? "success" : "neutral"} className="print:border print:border-slate-300">
                     {patient.estado === "activo" ? "Tratamiento Activo" : patient.estado}
                   </Badge>
                 </div>
@@ -190,41 +210,41 @@ function PatientDetailContent({
           </div>
 
           {/* DATOS DEMOGRÁFICOS Y DE CONTACTO */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-            <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-100 space-y-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs print:grid-cols-3 print:gap-3">
+            <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-100 space-y-1 print:bg-white print:border-slate-300 print:p-3 print:rounded-xl">
               <span className="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">
                 Contacto
               </span>
               <p className="font-medium text-slate-800 flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-sky-600" />
+                <Phone className="w-3.5 h-3.5 text-sky-600 print:hidden" />
                 {patient.telefono || "No registrado"}
               </p>
               <p className="font-medium text-slate-800 flex items-center gap-2 truncate">
-                <Mail className="w-3.5 h-3.5 text-sky-600" />
+                <Mail className="w-3.5 h-3.5 text-sky-600 print:hidden" />
                 {patient.email || "No registrado"}
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-100 space-y-1">
+            <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-100 space-y-1 print:bg-white print:border-slate-300 print:p-3 print:rounded-xl">
               <span className="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">
                 Edad y Nacimiento
               </span>
               <p className="font-medium text-slate-800 flex items-center gap-2">
-                <Calendar className="w-3.5 h-3.5 text-sky-600" />
+                <Calendar className="w-3.5 h-3.5 text-sky-600 print:hidden" />
                 {patient.fecha_nacimiento || "Fecha no registrada"}
               </p>
               {age !== null && (
-                <p className="text-slate-600 pl-5.5 font-medium">
+                <p className="text-slate-600 pl-5.5 font-medium print:pl-0">
                   {age} años de edad
                 </p>
               )}
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-100 space-y-1">
+            <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-100 space-y-1 print:bg-white print:border-slate-300 print:p-3 print:rounded-xl">
               <span className="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">
                 Sesiones Registradas
               </span>
-              <p className="text-2xl font-bold text-sky-700">
+              <p className="text-2xl font-bold text-sky-700 print:text-xl print:text-slate-800">
                 {notes.length}
               </p>
               <p className="text-slate-500">
@@ -234,10 +254,10 @@ function PatientDetailContent({
           </div>
 
           {/* MOTIVO DE CONSULTA Y ANTECEDENTES */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-2">
-            <div className="p-4 rounded-2xl bg-sky-50/40 border border-sky-100 space-y-1">
-              <p className="font-bold text-sky-900 flex items-center gap-1.5">
-                <FileText className="w-4 h-4 text-sky-600" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-2 print:grid-cols-2 print:gap-3 print:pt-0">
+            <div className="p-4 rounded-2xl bg-sky-50/40 border border-sky-100 space-y-1 print:bg-white print:border-slate-300 print:p-3 print:rounded-xl">
+              <p className="font-bold text-sky-900 flex items-center gap-1.5 print:text-slate-900">
+                <FileText className="w-4 h-4 text-sky-600 print:hidden" />
                 Motivo de Consulta Inicial
               </p>
               <p className="text-slate-700 leading-relaxed">
@@ -245,9 +265,9 @@ function PatientDetailContent({
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1 print:bg-white print:border-slate-300 print:p-3 print:rounded-xl">
               <p className="font-bold text-slate-800 flex items-center gap-1.5">
-                <History className="w-4 h-4 text-slate-500" />
+                <History className="w-4 h-4 text-slate-500 print:hidden" />
                 Notas Generales y Antecedentes
               </p>
               <p className="text-slate-600 leading-relaxed">
@@ -258,11 +278,11 @@ function PatientDetailContent({
         </div>
 
         {/* EXPEDIENTE CLÍNICO: NOTAS DE SESIÓN (HISTORIAL CRONOLÓGICO) */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="space-y-4 print:space-y-3">
+          <div className="flex items-center justify-between print:mb-2">
             <div>
-              <h3 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                <FileText className="w-5 h-5 text-teal-600" />
+              <h3 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2 print:text-base">
+                <FileText className="w-5 h-5 text-teal-600 print:hidden" />
                 <span>
                   {isSecretary ? "Expediente Clínico Reservado" : `Historial Cronológico de Sesiones (${notes.length})`}
                 </span>
@@ -270,7 +290,7 @@ function PatientDetailContent({
               <p className="text-xs text-slate-500">
                 {isSecretary
                   ? "Información médica y notas de evolución protegidas"
-                  : "Evolución clínica, acuerdos y tareas asignadas al paciente"}
+                  : "Evolución clínica, observaciones y acuerdos terapéuticos"}
               </p>
             </div>
 
@@ -279,6 +299,7 @@ function PatientDetailContent({
                 variant="primary"
                 size="sm"
                 onClick={() => setIsNoteModalOpen(true)}
+                className="print:hidden"
               >
                 <Plus className="w-4 h-4" />
                 <span>Registrar Nota de Sesión</span>
@@ -287,8 +308,8 @@ function PatientDetailContent({
           </div>
 
           {isSecretary ? (
-            <Card className="p-8 text-center border border-slate-200/80 bg-slate-50/70 space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto shadow-xs">
+            <Card className="p-8 text-center border border-slate-200/80 bg-slate-50/70 space-y-3 print:border-slate-300 print:bg-white">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto shadow-xs print:hidden">
                 <Lock className="w-6 h-6" />
               </div>
               <h4 className="text-base font-bold text-slate-800">
@@ -297,7 +318,7 @@ function PatientDetailContent({
               <p className="text-xs text-slate-500 max-w-lg mx-auto leading-relaxed">
                 Las observaciones de sesión, hipótesis diagnósticas y evolución terapéutica de este paciente están protegidas bajo el secreto profesional médico y son de acceso exclusivo para el psicólogo tratante.
               </p>
-              <div className="pt-2 flex items-center justify-center gap-3">
+              <div className="pt-2 flex items-center justify-center gap-3 print:hidden">
                 <Button variant="secondary" size="sm" onClick={() => setIsApptModalOpen(true)}>
                   <CalendarPlus className="w-4 h-4 text-sky-600" />
                   <span>Agendar Próxima Cita para {patient.nombre}</span>
@@ -305,8 +326,8 @@ function PatientDetailContent({
               </div>
             </Card>
           ) : notes.length === 0 ? (
-            <Card className="p-12 text-center border-dashed border-2 bg-slate-50/50">
-              <FileText className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+            <Card className="p-12 text-center border-dashed border-2 bg-slate-50/50 print:bg-white print:border-slate-300">
+              <FileText className="w-12 h-12 mx-auto text-slate-300 mb-3 print:hidden" />
               <h4 className="text-base font-semibold text-slate-800">
                 Aún no hay notas registradas para este paciente
               </h4>
@@ -317,26 +338,27 @@ function PatientDetailContent({
                 variant="primary"
                 size="sm"
                 onClick={() => setIsNoteModalOpen(true)}
+                className="print:hidden"
               >
                 <Plus className="w-4 h-4" />
                 <span>Crear Primera Nota</span>
               </Button>
             </Card>
           ) : (
-            <div className="relative pl-6 sm:pl-8 border-l-2 border-sky-200/70 space-y-8 ml-3 sm:ml-4 pt-2">
+            <div className="relative pl-6 sm:pl-8 border-l-2 border-sky-200/70 space-y-8 ml-3 sm:ml-4 pt-2 print:border-l-0 print:pl-0 print:ml-0 print:space-y-4 print:pt-0">
               {notes.map((note, index) => (
-                <div key={note.id} className="relative group">
+                <div key={note.id} className="relative group break-inside-avoid">
                   {/* Nodo circular del timeline */}
-                  <div className="absolute -left-[31px] sm:-left-[39px] top-4 w-4 h-4 rounded-full bg-white border-4 border-sky-600 shadow-xs group-hover:scale-125 transition-transform" />
+                  <div className="absolute -left-[31px] sm:-left-[39px] top-4 w-4 h-4 rounded-full bg-white border-4 border-sky-600 shadow-xs group-hover:scale-125 transition-transform print:hidden" />
 
-                  <Card className="p-6 space-y-4 hover:border-sky-300 transition-all bg-white shadow-xs">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                  <Card className="p-6 space-y-4 hover:border-sky-300 transition-all bg-white shadow-xs break-inside-avoid print:shadow-none print:border print:border-slate-300 print:p-4 print:rounded-xl">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3 print:border-slate-200 print:pb-2">
                       <div className="flex items-center gap-2.5">
-                        <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700">
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 print:bg-slate-100 print:text-slate-800 print:border print:border-slate-300">
                           Sesión #{notes.length - index}
                         </span>
                         <span className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
-                          <Calendar className="w-4 h-4 text-slate-400" />
+                          <Calendar className="w-4 h-4 text-slate-400 print:hidden" />
                           {new Date(note.fecha).toLocaleDateString("es-ES", {
                             weekday: "long",
                             year: "numeric",
@@ -353,12 +375,12 @@ function PatientDetailContent({
 
                     {/* Diagnóstico Preliminar */}
                     {note.diagnostico_preliminar && (
-                      <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200/70 text-xs">
-                        <p className="font-bold text-amber-900 flex items-center gap-1.5 mb-0.5">
-                          <Stethoscope className="w-3.5 h-3.5 text-amber-600" />
+                      <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200/70 text-xs print:bg-slate-50 print:border-slate-300">
+                        <p className="font-bold text-amber-900 flex items-center gap-1.5 mb-0.5 print:text-slate-800">
+                          <Stethoscope className="w-3.5 h-3.5 text-amber-600 print:hidden" />
                           Diagnóstico / Hipótesis Clínica:
                         </p>
-                        <p className="text-amber-950 font-medium">
+                        <p className="text-amber-950 font-medium print:text-slate-900">
                           {note.diagnostico_preliminar}
                         </p>
                       </div>
@@ -369,19 +391,19 @@ function PatientDetailContent({
                       <p className="font-bold text-slate-700 uppercase tracking-wider text-[10px]">
                         Observaciones y Evolución de la Sesión:
                       </p>
-                      <p className="text-slate-800 leading-relaxed whitespace-pre-line text-sm bg-slate-50/50 p-3.5 rounded-xl border border-slate-100">
+                      <p className="text-slate-800 leading-relaxed whitespace-pre-line text-sm bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 print:bg-transparent print:border print:border-slate-200 print:p-3 print:rounded-lg">
                         {note.observaciones}
                       </p>
                     </div>
 
                     {/* Tareas y Recomendaciones */}
                     {note.tareas_recomendaciones && (
-                      <div className="p-3.5 rounded-xl bg-teal-50/60 border border-teal-200/70 text-xs">
-                        <p className="font-bold text-teal-900 flex items-center gap-1.5 mb-1">
-                          <CheckSquare className="w-3.5 h-3.5 text-teal-600" />
+                      <div className="p-3.5 rounded-xl bg-teal-50/60 border border-teal-200/70 text-xs print:bg-slate-50 print:border-slate-300">
+                        <p className="font-bold text-teal-900 flex items-center gap-1.5 mb-1 print:text-slate-800">
+                          <CheckSquare className="w-3.5 h-3.5 text-teal-600 print:hidden" />
                           Tareas Asignadas y Recomendaciones:
                         </p>
-                        <p className="text-teal-950 leading-relaxed whitespace-pre-line font-medium">
+                        <p className="text-teal-950 leading-relaxed whitespace-pre-line font-medium print:text-slate-900">
                           {note.tareas_recomendaciones}
                         </p>
                       </div>
@@ -391,6 +413,22 @@ function PatientDetailContent({
               ))}
             </div>
           )}
+        </div>
+
+        {/* PIE DE PÁGINA Y FIRMA PROFESIONAL (Visible ÚNICAMENTE al imprimir) */}
+        <div className="hidden print:block pt-16 mt-8 break-inside-avoid">
+          <div className="flex justify-between items-end px-4">
+            <div className="text-center w-72 border-t border-slate-800 pt-2 text-xs text-slate-800">
+              <p className="font-bold">Firma y Sello del Profesional</p>
+              <p className="text-[10px] text-slate-500">Psicólogo(a) Clínico Tratante</p>
+            </div>
+            <div className="text-right text-[10px] text-slate-500 max-w-sm">
+              <p className="font-semibold text-slate-700">Documento Confidencial de Uso Médico-Clínico</p>
+              <p className="mt-0.5">
+                La divulgación de este expediente está sujeta al secreto profesional y normativas de confidencialidad en salud mental.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

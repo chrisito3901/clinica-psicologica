@@ -239,7 +239,7 @@ export function Sidebar() {
   return (
     <>
       {/* Botón flotante móvil para abrir Sidebar */}
-      <div className="lg:hidden fixed top-3 left-4 z-40">
+      <div className="lg:hidden fixed top-3 left-4 z-40 print:hidden">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-sm"
@@ -250,13 +250,13 @@ export function Sidebar() {
       </div>
 
       {/* Sidebar Escritorio (fijo) */}
-      <aside className="hidden lg:block fixed inset-y-0 left-0 z-30">
+      <aside className="hidden lg:block fixed inset-y-0 left-0 z-30 print:hidden">
         {navContent}
       </aside>
 
       {/* Drawer Móvil */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
+        <div className="lg:hidden fixed inset-0 z-50 flex print:hidden">
           <div
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
             onClick={() => setMobileOpen(false)}
