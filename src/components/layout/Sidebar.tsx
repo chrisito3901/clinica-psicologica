@@ -128,15 +128,22 @@ export function Sidebar() {
       {/* Psychologist User & Sign out */}
       <div className="pt-4 border-t border-slate-100 mt-auto space-y-2">
         <div className="flex items-center gap-3 px-2 py-1.5 rounded-xl bg-slate-50">
-          <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center">
-            {userEmail ? userEmail.charAt(0).toUpperCase() : "P"}
+          <div className={cn(
+            "w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center",
+            userEmail ? "bg-sky-100 text-sky-700" : "bg-amber-100 text-amber-700"
+          )}>
+            {userEmail ? userEmail.charAt(0).toUpperCase() : "D"}
           </div>
           <div className="overflow-hidden flex-1">
             <p className="text-xs font-semibold text-slate-800 truncate">
-              {userEmail || "Psicólogo(a)"}
+              {userEmail || "Modo Demostración"}
             </p>
-            <p className="text-[10px] text-teal-600 font-medium flex items-center gap-1">
-              <Sparkles className="w-2.5 h-2.5" /> Sesión activa
+            <p className={cn(
+              "text-[10px] font-medium flex items-center gap-1",
+              userEmail ? "text-teal-600" : "text-amber-600"
+            )}>
+              <Sparkles className="w-2.5 h-2.5" />
+              {userEmail ? "Cuenta Supabase" : "Datos de prueba"}
             </p>
           </div>
         </div>

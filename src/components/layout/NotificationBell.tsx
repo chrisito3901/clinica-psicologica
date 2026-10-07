@@ -4,6 +4,7 @@ import * as React from "react";
 import { Bell, Calendar, Clock, User, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Appointment } from "@/types/database";
+import { ClinicService } from "@/lib/services/clinicService";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -15,52 +16,11 @@ export function NotificationBell() {
 
   const fetchTodayAppointments = React.useCallback(async () => {
     try {
-      const supabase = createClient();
-      
-      // Obtener rango de hoy
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date();
-      endOfDay.setHours(23, 59, 59, 999);
-
-      const { data, error } = await supabase
-        .from("appointments")
-        .select(`
-          id,
-          user_id,
-          patient_id,
-          fecha_hora,
-          duracion_minutos,
-          estado,
-          motivo,
-          notas,
-          created_at,
-          updated_at,
-          patients (
-            id,
-            nombre,
-            email,
-            telefono
-          )
-        `)
-        .gte("fecha_hora", startOfDay.toISOString())
-        .lte("fecha_hora", endOfDay.toISOString())
-        .order("fecha_hora", { ascending: true });
-
-      if (error) {
-        console.warn("Supabase fetchTodayAppointments error:", error.message);
-        // Fallback silencioso si aún no hay sesión o tabla
-        setAppointmentsToday([]);
-      } else if (data) {
-        // En Supabase, `patients` viene como un objeto gracias a la relación foránea
-        const mapped = data.map((item: any) => ({
-          ...item,
-          patients: Array.isArray(item.patients) ? item.patients[0] : item.patients,
-        }));
-        setAppointmentsToday(mapped);
-      }
+      const todayAppts = await ClinicService.getTodayAppointments();
+      setAppointmentsToday(todayAppts);
     } catch (err) {
-      console.warn("Error cargando citas de hoy:", err);
+      console.warn("Error cargando citas de hoy en campana:", err);
+      setAppointmentsToday([]);
     } finally {
       setLoading(false);
     }

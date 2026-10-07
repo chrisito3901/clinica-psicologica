@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
 import { Patient, Appointment, SessionNote, PatientStatus, AppointmentStatus } from "@/types/database";
 
-// Datos de demostración en caso de trabajar sin sesión o con BD vacía
+// ==============================================================================
+// DATOS EXCLUSIVOS PARA MODO DEMOSTRACIÓN (SOLO SI NO HAY USUARIO AUTENTICADO)
+// ==============================================================================
 const DEMO_PATIENTS: Patient[] = [
   {
     id: "demo-p1",
@@ -57,7 +59,6 @@ const DEMO_PATIENTS: Patient[] = [
   },
 ];
 
-// Generar citas para hoy y próximos días
 const today = new Date();
 const todayDateStr = today.toISOString().split("T")[0];
 
@@ -157,17 +158,20 @@ const DEMO_SESSION_NOTES: SessionNote[] = [
   },
 ];
 
-// Almacenamiento local en memoria / sesión si no hay Supabase Auth activo
+// Almacenamiento local en memoria ÚNICAMENTE si no hay sesión autenticada
 let memoryPatients = [...DEMO_PATIENTS];
 let memoryAppointments = [...DEMO_APPOINTMENTS];
 let memorySessionNotes = [...DEMO_SESSION_NOTES];
 
 export const ClinicService = {
+  // ==========================================
   // PACIENTES
+  // ==========================================
   async getPatients(search?: string, status?: string): Promise<Patient[]> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    // SI HAY USUARIO AUTENTICADO: Consultar estrictamente Supabase
     if (user) {
       let query = supabase
         .from("patients")
@@ -182,12 +186,15 @@ export const ClinicService = {
       }
 
       const { data, error } = await query;
-      if (!error && data && data.length > 0) {
-        return data as Patient[];
+      if (error) {
+        console.error("Error al consultar pacientes en Supabase:", error.message);
+        return [];
       }
+      // Si el usuario no tiene pacientes aún, retorna arreglo vacío (Clean Slate)
+      return (data || []) as Patient[];
     }
 
-    // Fallback memoria demo
+    // SI ES MODO DEMO (Sin usuario autenticado): Usar datos de demostración
     let result = [...memoryPatients];
     if (status && status !== "todos") {
       result = result.filter((p) => p.estado === status);
@@ -214,9 +221,15 @@ export const ClinicService = {
         .select("*")
         .eq("id", id)
         .single();
-      if (!error && data) return data as Patient;
+
+      if (error) {
+        console.error("Error al obtener paciente en Supabase:", error.message);
+        return null;
+      }
+      return data as Patient;
     }
 
+    // Modo demo
     return memoryPatients.find((p) => p.id === id) || null;
   },
 
@@ -292,12 +305,15 @@ export const ClinicService = {
       return;
     }
 
+    // Modo demo
     memoryPatients = memoryPatients.filter((p) => p.id !== id);
     memoryAppointments = memoryAppointments.filter((a) => a.patient_id !== id);
     memorySessionNotes = memorySessionNotes.filter((n) => n.patient_id !== id);
   },
 
-  // CITAS
+  // ==========================================
+  // CITAS Y AGENDA
+  // ==========================================
   async getTodayAppointments(): Promise<Appointment[]> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -318,14 +334,19 @@ export const ClinicService = {
         .lte("fecha_hora", endOfDay.toISOString())
         .order("fecha_hora", { ascending: true });
 
-      if (!error && data && data.length > 0) {
-        return data.map((item: any) => ({
-          ...item,
-          patients: Array.isArray(item.patients) ? item.patients[0] : item.patients,
-        })) as Appointment[];
+      if (error) {
+        console.error("Error al obtener citas de hoy en Supabase:", error.message);
+        return [];
       }
+
+      // Si no tiene citas hoy, retorna array vacío
+      return (data || []).map((item: any) => ({
+        ...item,
+        patients: Array.isArray(item.patients) ? item.patients[0] : item.patients,
+      })) as Appointment[];
     }
 
+    // Modo demo
     const todayStr = new Date().toISOString().split("T")[0];
     return memoryAppointments.filter((a) => a.fecha_hora.startsWith(todayStr));
   },
@@ -343,14 +364,18 @@ export const ClinicService = {
         `)
         .order("fecha_hora", { ascending: true });
 
-      if (!error && data && data.length > 0) {
-        return data.map((item: any) => ({
-          ...item,
-          patients: Array.isArray(item.patients) ? item.patients[0] : item.patients,
-        })) as Appointment[];
+      if (error) {
+        console.error("Error al consultar citas en Supabase:", error.message);
+        return [];
       }
+
+      return (data || []).map((item: any) => ({
+        ...item,
+        patients: Array.isArray(item.patients) ? item.patients[0] : item.patients,
+      })) as Appointment[];
     }
 
+    // Modo demo
     return memoryAppointments;
   },
 
@@ -412,6 +437,7 @@ export const ClinicService = {
       return;
     }
 
+    // Modo demo
     const idx = memoryAppointments.findIndex((a) => a.id === id);
     if (idx !== -1) {
       memoryAppointments[idx].estado = estado;
@@ -428,10 +454,13 @@ export const ClinicService = {
       return;
     }
 
+    // Modo demo
     memoryAppointments = memoryAppointments.filter((a) => a.id !== id);
   },
 
-  // NOTAS DE SESIÓN
+  // ==========================================
+  // NOTAS DE SESIÓN (EXPEDIENTE CLÍNICO)
+  // ==========================================
   async getSessionNotesByPatient(patientId: string): Promise<SessionNote[]> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -443,11 +472,14 @@ export const ClinicService = {
         .eq("patient_id", patientId)
         .order("fecha", { ascending: false });
 
-      if (!error && data && data.length > 0) {
-        return data as SessionNote[];
+      if (error) {
+        console.error("Error al obtener notas en Supabase:", error.message);
+        return [];
       }
+      return (data || []) as SessionNote[];
     }
 
+    // Modo demo
     return memorySessionNotes
       .filter((n) => n.patient_id === patientId)
       .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
@@ -463,11 +495,14 @@ export const ClinicService = {
         .select("*")
         .order("fecha", { ascending: false });
 
-      if (!error && data && data.length > 0) {
-        return data as SessionNote[];
+      if (error) {
+        console.error("Error al consultar notas generales en Supabase:", error.message);
+        return [];
       }
+      return (data || []) as SessionNote[];
     }
 
+    // Modo demo
     return memorySessionNotes.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
   },
 
@@ -503,15 +538,19 @@ export const ClinicService = {
     return newNote;
   },
 
+  // ==========================================
   // ESTADÍSTICAS DEL DASHBOARD
+  // ==========================================
   async getDashboardStats() {
-    const patients = await this.getPatients();
-    const todayAppointments = await this.getTodayAppointments();
-    const allAppointments = await this.getAllAppointments();
+    const [patients, todayAppointments, allAppointments] = await Promise.all([
+      this.getPatients(),
+      this.getTodayAppointments(),
+      this.getAllAppointments(),
+    ]);
 
     const activePatients = patients.filter((p) => p.estado === "activo").length;
 
-    // Calcular citas esta semana
+    // Calcular citas de esta semana
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay());
