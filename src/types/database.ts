@@ -1,5 +1,16 @@
+export type UserRole = 'psicologo' | 'secretaria';
 export type PatientStatus = 'activo' | 'inactivo' | 'alta';
 export type AppointmentStatus = 'programada' | 'completada' | 'cancelada' | 'no_asistio';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  nombre: string | null;
+  rol: UserRole;
+  psychologist_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Patient {
   id: string;

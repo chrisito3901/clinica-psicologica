@@ -13,53 +13,50 @@ import {
   Menu,
   X,
   Sparkles,
+  ShieldCheck,
+  Lock,
+  ArrowRightLeft,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { ClinicService } from "@/lib/services/clinicService";
+import { UserRole } from "@/types/database";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
-const NAV_ITEMS = [
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Pacientes",
-    href: "/pacientes",
-    icon: Users,
-  },
-  {
-    label: "Agenda y Citas",
-    href: "/agenda",
-    icon: Calendar,
-  },
-  {
-    label: "Notas de Sesión",
-    href: "/notas",
-    icon: FileText,
-  },
-];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [userEmail, setUserEmail] = React.useState<string | null>(null);
+  const [userName, setUserName] = React.useState<string | null>(null);
+  const [role, setRole] = React.useState<UserRole>("psicologo");
+
+  const updateProfile = React.useCallback(async () => {
+    try {
+      const profile = await ClinicService.getCurrentProfile();
+      if (profile) {
+        setRole(profile.rol);
+        setUserName(profile.nombre);
+        if (profile.id !== "demo-user") {
+          setUserEmail(profile.email);
+        }
+      }
+    } catch (err) {
+      console.warn("Error fetching profile in sidebar:", err);
+    }
+  }, []);
 
   React.useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const supabase = createClient();
-        const { data } = await supabase.auth.getUser();
-        if (data.user?.email) {
-          setUserEmail(data.user.email);
-        }
-      } catch (err) {
-        console.warn("Error fetching user in sidebar:", err);
-      }
+    updateProfile();
+
+    const handleRoleChanged = () => {
+      updateProfile();
     };
-    fetchUser();
-  }, []);
+    window.addEventListener("demo-role-changed", handleRoleChanged);
+    return () => {
+      window.removeEventListener("demo-role-changed", handleRoleChanged);
+    };
+  }, [updateProfile]);
 
   const handleSignOut = async () => {
     try {
@@ -73,10 +70,46 @@ export function Sidebar() {
     }
   };
 
+  const isSecretary = role === "secretaria";
+
+  // Ítems de navegación dinámicos según rol
+  const navItems = [
+    {
+      label: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      label: "Pacientes",
+      href: "/pacientes",
+      icon: Users,
+    },
+    {
+      label: "Agenda y Citas",
+      href: "/agenda",
+      icon: Calendar,
+    },
+    // Solo visible para psicólogos (oculto para secretaría por confidencialidad clínica)
+    ...(!isSecretary
+      ? [
+          {
+            label: "Notas de Sesión",
+            href: "/notas",
+            icon: FileText,
+          },
+        ]
+      : []),
+    {
+      label: "Equipo y Roles",
+      href: "/equipo",
+      icon: ShieldCheck,
+    },
+  ];
+
   const navContent = (
     <div className="flex flex-col h-full bg-white border-r border-slate-200/80 w-64 p-4">
       {/* Brand Logo */}
-      <div className="flex items-center gap-3 px-2 py-3 mb-6">
+      <div className="flex items-center gap-3 px-2 py-3 mb-4">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-teal-500 flex items-center justify-center text-white shadow-sm shadow-sky-500/20">
           <HeartHandshake className="w-6 h-6" />
         </div>
@@ -85,17 +118,50 @@ export function Sidebar() {
             MenteSana
           </h1>
           <p className="text-[11px] text-slate-400 font-medium mt-1">
-            Clínica de Psicología
+            {isSecretary ? "Panel de Secretaría" : "Clínica de Psicología"}
           </p>
         </div>
       </div>
 
+      {/* Selector de Rol en Modo Demostración */}
+      {!userEmail && (
+        <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/70 mb-4 space-y-2">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="font-bold text-amber-900">Vista Demo Activa:</span>
+            <span
+              className={cn(
+                "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                isSecretary
+                  ? "bg-teal-100 text-teal-800"
+                  : "bg-sky-100 text-sky-800"
+              )}
+            >
+              {isSecretary ? "Secretaría" : "Psicólogo"}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              const nextRole: UserRole = isSecretary ? "psicologo" : "secretaria";
+              ClinicService.setDemoRole(nextRole);
+              setRole(nextRole);
+              if (nextRole === "secretaria" && pathname.startsWith("/notas")) {
+                router.push("/dashboard");
+              }
+            }}
+            className="w-full py-1.5 px-2.5 rounded-xl bg-white border border-amber-200 text-xs font-semibold text-amber-900 hover:bg-amber-100/60 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <ArrowRightLeft className="w-3.5 h-3.5" />
+            <span>Ver como {isSecretary ? "Psicólogo(a)" : "Secretaria(o)"}</span>
+          </button>
+        </div>
+      )}
+
       {/* Navigation links */}
       <nav className="space-y-1 flex-1">
         <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-          Gestión Clínica
+          {isSecretary ? "Gestión Asistencial" : "Gestión Clínica"}
         </p>
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             pathname === item.href ||
@@ -123,27 +189,38 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {/* Indicador de expediente restringido para secretaria */}
+        {isSecretary && (
+          <div className="pt-2 px-3">
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start gap-2 text-slate-500 text-[11px]">
+              <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+              <span>Expedientes clínicos restringidos por secreto profesional.</span>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* Psychologist User & Sign out */}
+      {/* Usuario actual & Sign out */}
       <div className="pt-4 border-t border-slate-100 mt-auto space-y-2">
         <div className="flex items-center gap-3 px-2 py-1.5 rounded-xl bg-slate-50">
-          <div className={cn(
-            "w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center",
-            userEmail ? "bg-sky-100 text-sky-700" : "bg-amber-100 text-amber-700"
-          )}>
-            {userEmail ? userEmail.charAt(0).toUpperCase() : "D"}
+          <div
+            className={cn(
+              "w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center text-white",
+              isSecretary
+                ? "bg-gradient-to-tr from-teal-500 to-emerald-600"
+                : "bg-gradient-to-tr from-sky-600 to-indigo-600"
+            )}
+          >
+            {isSecretary ? "S" : userEmail ? userEmail.charAt(0).toUpperCase() : "P"}
           </div>
           <div className="overflow-hidden flex-1">
             <p className="text-xs font-semibold text-slate-800 truncate">
-              {userEmail || "Modo Demostración"}
+              {userName || (userEmail ? userEmail.split("@")[0] : isSecretary ? "Secretaría Clínica" : "Psicólogo(a)")}
             </p>
-            <p className={cn(
-              "text-[10px] font-medium flex items-center gap-1",
-              userEmail ? "text-teal-600" : "text-amber-600"
-            )}>
-              <Sparkles className="w-2.5 h-2.5" />
-              {userEmail ? "Cuenta Supabase" : "Datos de prueba"}
+            <p className="text-[10px] text-slate-500 flex items-center gap-1 font-medium">
+              <Sparkles className="w-2.5 h-2.5 text-teal-600" />
+              <span>{isSecretary ? "Rol Secretaría" : "Rol Especialista"}</span>
             </p>
           </div>
         </div>

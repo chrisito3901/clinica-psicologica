@@ -23,6 +23,7 @@ import {
   Printer,
   History,
   CalendarPlus,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import { SessionNoteFormModal } from "@/components/notes/SessionNoteFormModal";
@@ -38,6 +39,7 @@ function PatientDetailContent({
 
   const [patient, setPatient] = React.useState<Patient | null>(null);
   const [notes, setNotes] = React.useState<SessionNote[]>([]);
+  const [isSecretary, setIsSecretary] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
 
   // Modales
@@ -47,12 +49,14 @@ function PatientDetailContent({
   const loadPatientData = React.useCallback(async () => {
     try {
       setLoading(true);
-      const [patientData, notesData] = await Promise.all([
+      const [patientData, notesData, profile] = await Promise.all([
         ClinicService.getPatientById(patientId),
         ClinicService.getSessionNotesByPatient(patientId),
+        ClinicService.getCurrentProfile(),
       ]);
       setPatient(patientData);
       setNotes(notesData);
+      setIsSecretary(profile?.rol === "secretaria");
     } catch (err) {
       console.error("Error loading patient file:", err);
     } finally {
@@ -133,14 +137,16 @@ function PatientDetailContent({
               <CalendarPlus className="w-4 h-4 text-sky-600" />
               <span className="hidden sm:inline">Agendar Cita</span>
             </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setIsNoteModalOpen(true)}
-            >
-              <Plus className="w-4 h-4" />
-              <span>Nueva Nota</span>
-            </Button>
+            {!isSecretary && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setIsNoteModalOpen(true)}
+              >
+                <Plus className="w-4 h-4" />
+                <span>Nueva Nota</span>
+              </Button>
+            )}
           </div>
         }
       />
@@ -257,24 +263,48 @@ function PatientDetailContent({
             <div>
               <h3 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2">
                 <FileText className="w-5 h-5 text-teal-600" />
-                <span>Historial Cronológico de Sesiones ({notes.length})</span>
+                <span>
+                  {isSecretary ? "Expediente Clínico Reservado" : `Historial Cronológico de Sesiones (${notes.length})`}
+                </span>
               </h3>
               <p className="text-xs text-slate-500">
-                Evolución clínica, acuerdos y tareas asignadas al paciente
+                {isSecretary
+                  ? "Información médica y notas de evolución protegidas"
+                  : "Evolución clínica, acuerdos y tareas asignadas al paciente"}
               </p>
             </div>
 
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setIsNoteModalOpen(true)}
-            >
-              <Plus className="w-4 h-4" />
-              <span>Registrar Nota de Sesión</span>
-            </Button>
+            {!isSecretary && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setIsNoteModalOpen(true)}
+              >
+                <Plus className="w-4 h-4" />
+                <span>Registrar Nota de Sesión</span>
+              </Button>
+            )}
           </div>
 
-          {notes.length === 0 ? (
+          {isSecretary ? (
+            <Card className="p-8 text-center border border-slate-200/80 bg-slate-50/70 space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto shadow-xs">
+                <Lock className="w-6 h-6" />
+              </div>
+              <h4 className="text-base font-bold text-slate-800">
+                Acceso Restringido por Confidencialidad y Secreto Profesional
+              </h4>
+              <p className="text-xs text-slate-500 max-w-lg mx-auto leading-relaxed">
+                Las observaciones de sesión, hipótesis diagnósticas y evolución terapéutica de este paciente están protegidas bajo el secreto profesional médico y son de acceso exclusivo para el psicólogo tratante.
+              </p>
+              <div className="pt-2 flex items-center justify-center gap-3">
+                <Button variant="secondary" size="sm" onClick={() => setIsApptModalOpen(true)}>
+                  <CalendarPlus className="w-4 h-4 text-sky-600" />
+                  <span>Agendar Próxima Cita para {patient.nombre}</span>
+                </Button>
+              </div>
+            </Card>
+          ) : notes.length === 0 ? (
             <Card className="p-12 text-center border-dashed border-2 bg-slate-50/50">
               <FileText className="w-12 h-12 mx-auto text-slate-300 mb-3" />
               <h4 className="text-base font-semibold text-slate-800">

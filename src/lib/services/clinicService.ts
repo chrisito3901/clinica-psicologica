@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { Patient, Appointment, SessionNote, PatientStatus, AppointmentStatus } from "@/types/database";
+import { Patient, Appointment, SessionNote, PatientStatus, AppointmentStatus, UserProfile, UserRole } from "@/types/database";
 
 // ==============================================================================
 // DATOS EXCLUSIVOS PARA MODO DEMOSTRACIÓN (SOLO SI NO HAY USUARIO AUTENTICADO)
@@ -162,8 +162,172 @@ const DEMO_SESSION_NOTES: SessionNote[] = [
 let memoryPatients = [...DEMO_PATIENTS];
 let memoryAppointments = [...DEMO_APPOINTMENTS];
 let memorySessionNotes = [...DEMO_SESSION_NOTES];
+let currentDemoRole: UserRole = "psicologo";
+let memorySecretaries: UserProfile[] = [
+  {
+    id: "demo-sec-1",
+    email: "secretaria@mentesana.com",
+    nombre: "Lucía Fernández (Secretaría)",
+    rol: "secretaria",
+    psychologist_id: "demo-user",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+];
 
 export const ClinicService = {
+  // ==========================================
+  // PERFILES, ROLES Y EQUIPO (SECRETARÍA)
+  // ==========================================
+  async getCurrentProfile(): Promise<UserProfile | null> {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (!error && data) {
+        return data as UserProfile;
+      }
+
+      // Perfil fallback si es cuenta recién creada
+      const rol = (user.user_metadata?.rol as UserRole) || "psicologo";
+      return {
+        id: user.id,
+        email: user.email || "",
+        nombre: user.user_metadata?.nombre || user.email?.split("@")[0] || "Especialista",
+        rol,
+        psychologist_id: user.user_metadata?.psychologist_id || (rol === "psicologo" ? user.id : null),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+    }
+
+    // Modo Demo
+    const demoRole = this.getDemoRole();
+    return {
+      id: "demo-user",
+      email: demoRole === "secretaria" ? "secretaria@mentesana.com" : "psicologo@mentesana.com",
+      nombre: demoRole === "secretaria" ? "Lucía Fernández (Secretaría)" : "Dr. Especialista MenteSana",
+      rol: demoRole,
+      psychologist_id: "demo-user",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  },
+
+  getDemoRole(): UserRole {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("mentesana_demo_role");
+      if (saved === "secretaria" || saved === "psicologo") return saved;
+    }
+    return currentDemoRole;
+  },
+
+  setDemoRole(role: UserRole) {
+    currentDemoRole = role;
+    if (typeof window !== "undefined") {
+      localStorage.setItem("mentesana_demo_role", role);
+      window.dispatchEvent(new Event("demo-role-changed"));
+    }
+  },
+
+  async getSecretaries(): Promise<UserProfile[]> {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("psychologist_id", user.id)
+        .eq("rol", "secretaria")
+        .order("created_at", { ascending: false });
+
+      if (!error && data) return data as UserProfile[];
+      return [];
+    }
+
+    return memorySecretaries;
+  },
+
+  async createSecretary(secretaryData: {
+    nombre: string;
+    email: string;
+    password?: string;
+  }): Promise<UserProfile> {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      // Intentar llamar a API route interna con service role si existe
+      try {
+        const res = await fetch("/api/team/create-secretary", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(secretaryData),
+        });
+        const result = await res.json();
+        if (res.ok && result.profile) {
+          return result.profile;
+        }
+      } catch (apiErr) {
+        console.warn("API route create-secretary no disponible, insertando perfil directo:", apiErr);
+      }
+
+      // Inserción en tabla profiles
+      const { data, error } = await supabase
+        .from("profiles")
+        .insert({
+          id: crypto.randomUUID(),
+          email: secretaryData.email,
+          nombre: secretaryData.nombre,
+          rol: "secretaria",
+          psychologist_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (error) throw new Error(error.message);
+      return data as UserProfile;
+    }
+
+    // Modo Demo
+    const newSec: UserProfile = {
+      id: "demo-sec-" + Date.now(),
+      email: secretaryData.email,
+      nombre: secretaryData.nombre,
+      rol: "secretaria",
+      psychologist_id: "demo-user",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    memorySecretaries.push(newSec);
+    return newSec;
+  },
+
+  async deleteSecretary(id: string): Promise<void> {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", id)
+        .eq("psychologist_id", user.id);
+
+      if (error) throw new Error(error.message);
+      return;
+    }
+
+    memorySecretaries = memorySecretaries.filter((s) => s.id !== id);
+  },
+
   // ==========================================
   // PACIENTES
   // ==========================================
@@ -238,11 +402,14 @@ export const ClinicService = {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
+      const profile = await this.getCurrentProfile();
+      const targetUserId = (profile?.rol === "secretaria" && profile.psychologist_id) ? profile.psychologist_id : user.id;
+
       const { data, error } = await supabase
         .from("patients")
         .insert({
           ...patientData,
-          user_id: user.id,
+          user_id: targetUserId,
         })
         .select()
         .single();
@@ -386,11 +553,14 @@ export const ClinicService = {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
+      const profile = await this.getCurrentProfile();
+      const targetUserId = (profile?.rol === "secretaria" && profile.psychologist_id) ? profile.psychologist_id : user.id;
+
       const { data: appt, error } = await supabase
         .from("appointments")
         .insert({
           ...data,
-          user_id: user.id,
+          user_id: targetUserId,
         })
         .select(`
           *,
@@ -462,6 +632,12 @@ export const ClinicService = {
   // NOTAS DE SESIÓN (EXPEDIENTE CLÍNICO)
   // ==========================================
   async getSessionNotesByPatient(patientId: string): Promise<SessionNote[]> {
+    const profile = await this.getCurrentProfile();
+    // Confidencialidad: La secretaría NO tiene acceso a notas clínicas de sesión
+    if (profile?.rol === "secretaria") {
+      return [];
+    }
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -486,6 +662,11 @@ export const ClinicService = {
   },
 
   async getAllSessionNotes(): Promise<SessionNote[]> {
+    const profile = await this.getCurrentProfile();
+    if (profile?.rol === "secretaria") {
+      return [];
+    }
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -509,6 +690,11 @@ export const ClinicService = {
   async createSessionNote(
     data: Omit<SessionNote, "id" | "user_id" | "created_at" | "updated_at">
   ): Promise<SessionNote> {
+    const profile = await this.getCurrentProfile();
+    if (profile?.rol === "secretaria") {
+      throw new Error("Acceso restringido: Solo el psicólogo tratante puede redactar notas clínicas.");
+    }
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 

@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ClinicService } from "@/lib/services/clinicService";
 import { SessionNote, Patient } from "@/types/database";
+import { Button } from "@/components/ui/button";
 import {
   FileText,
   Search,
@@ -15,12 +16,14 @@ import {
   CheckSquare,
   User,
   ArrowRight,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 
 export default function NotesExplorerPage() {
   const [notes, setNotes] = React.useState<SessionNote[]>([]);
   const [patientsMap, setPatientsMap] = React.useState<Record<string, Patient>>({});
+  const [isSecretary, setIsSecretary] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [search, setSearch] = React.useState("");
 
@@ -28,10 +31,12 @@ export default function NotesExplorerPage() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [notesData, patientsData] = await Promise.all([
+        const [notesData, patientsData, profile] = await Promise.all([
           ClinicService.getAllSessionNotes(),
           ClinicService.getPatients(),
+          ClinicService.getCurrentProfile(),
         ]);
+        setIsSecretary(profile?.rol === "secretaria");
         setNotes(notesData);
 
         const map: Record<string, Patient> = {};
@@ -78,7 +83,26 @@ export default function NotesExplorerPage() {
         </div>
 
         {/* LISTADO DE NOTAS */}
-        {loading ? (
+        {isSecretary ? (
+          <Card className="p-12 text-center border border-slate-200/80 bg-slate-50/70 space-y-4 max-w-lg mx-auto my-6">
+            <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto shadow-xs">
+              <Lock className="w-7 h-7" />
+            </div>
+            <h3 className="text-base font-bold text-slate-800">
+              Acceso Restringido a Notas Clínicas
+            </h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              El rol de secretaría o asistencia no tiene permisos para consultar diagnósticos ni notas de sesión terapéuticas por secreto profesional médico.
+            </p>
+            <div className="pt-2">
+              <Link href="/dashboard">
+                <Button variant="primary" size="sm">
+                  Volver al Panel Principal
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        ) : loading ? (
           <Card className="p-16 text-center text-slate-400 text-sm">
             Cargando historial de notas...
           </Card>
