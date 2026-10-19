@@ -23,6 +23,15 @@ export default function LoginPage() {
     setMessage(null);
 
     try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        setError("Faltan las variables de entorno de Supabase en Vercel (NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY). Agrégalas en la configuración de Vercel.");
+        setLoading(false);
+        return;
+      }
+
       const supabase = createClient();
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -38,7 +47,11 @@ export default function LoginPage() {
         router.refresh();
       }
     } catch (err: any) {
-      setError(err?.message || "Ocurrió un error inesperado al iniciar sesión.");
+      if (err?.message === "Failed to fetch") {
+        setError("Error de conexión con el servidor (Failed to fetch). Tu proyecto en Supabase está pausado o inactivo. Inicia sesión en supabase.com y haz clic en 'Restore Project' (Reanudar proyecto).");
+      } else {
+        setError(err?.message || "Ocurrió un error inesperado al iniciar sesión.");
+      }
     } finally {
       setLoading(false);
     }
