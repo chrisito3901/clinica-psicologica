@@ -166,7 +166,7 @@ let currentDemoRole: UserRole = "psicologo";
 let memorySecretaries: UserProfile[] = [
   {
     id: "demo-sec-1",
-    email: "secretaria@mentesana.com",
+    email: "secretaria@clinicanoguera.com",
     nombre: "Lucía Fernández (Secretaría)",
     rol: "secretaria",
     psychologist_id: "demo-user",
@@ -211,8 +211,8 @@ export const ClinicService = {
     const demoRole = this.getDemoRole();
     return {
       id: "demo-user",
-      email: demoRole === "secretaria" ? "secretaria@mentesana.com" : "psicologo@mentesana.com",
-      nombre: demoRole === "secretaria" ? "Lucía Fernández (Secretaría)" : "Dr. Especialista MenteSana",
+      email: demoRole === "secretaria" ? "secretaria@clinicanoguera.com" : "psicologo@clinicanoguera.com",
+      nombre: demoRole === "secretaria" ? "Lucía Fernández (Secretaría)" : "Dr. Especialista Noguera",
       rol: demoRole,
       psychologist_id: "demo-user",
       created_at: new Date().toISOString(),
@@ -222,7 +222,7 @@ export const ClinicService = {
 
   getDemoRole(): UserRole {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("mentesana_demo_role");
+      const saved = localStorage.getItem("clinicanoguera_demo_role");
       if (saved === "secretaria" || saved === "psicologo") return saved;
     }
     return currentDemoRole;
@@ -231,7 +231,7 @@ export const ClinicService = {
   setDemoRole(role: UserRole) {
     currentDemoRole = role;
     if (typeof window !== "undefined") {
-      localStorage.setItem("mentesana_demo_role", role);
+      localStorage.setItem("clinicanoguera_demo_role", role);
       window.dispatchEvent(new Event("demo-role-changed"));
     }
   },

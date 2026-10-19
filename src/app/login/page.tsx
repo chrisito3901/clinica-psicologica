@@ -70,7 +70,7 @@ export default function LoginPage() {
           <HeartHandshake className="w-8 h-8" />
         </div>
         <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          Clínica MenteSana
+          Clínica Noguera
         </h2>
         <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto">
           Sistema privado de gestión de expedientes clínicos, pacientes y agenda psicológica.

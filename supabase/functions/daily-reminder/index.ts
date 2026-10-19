@@ -106,7 +106,7 @@ serve(async (req) => {
           </ul>
           <p style="margin-top: 24px; font-size: 13px; color: #64748b;">
             Recuerda ingresar a tu panel clínico para consultar los expedientes antes de cada sesión.<br>
-            <em>Clínica Psicológica MenteSana</em>
+            <em>Clínica Noguera</em>
           </p>
         </div>
       `;
@@ -120,7 +120,7 @@ serve(async (req) => {
             Authorization: `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "Clínica MenteSana <recordatorios@tudominio.com>",
+            from: "Clínica Noguera <recordatorios@tudominio.com>",
             to: [userEmail],
             subject: `🗓️ Recordatorio: Tienes ${userAppointments.length} citas hoy`,
             html: emailHtml,

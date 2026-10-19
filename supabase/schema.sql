@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SISTEMA DE GESTIÓN PARA CLÍNICA DE PSICOLOGÍA: MENTESANA
+-- SISTEMA DE GESTIÓN PARA CLÍNICA DE PSICOLOGÍA: CLÍNICA NOGUERA
 -- Esquema de Base de Datos y Políticas de Seguridad RLS en Supabase
 -- Incluye Soporte Multi-Rol: Psicólogo(a) y Secretaría / Asistente
 -- ==============================================================================

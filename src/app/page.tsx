@@ -32,7 +32,7 @@ export default function RootPage() {
           <HeartHandshake className="w-8 h-8" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-slate-800">MenteSana</h2>
+          <h2 className="text-lg font-bold text-slate-800">Clínica Noguera</h2>
           <p className="text-xs text-slate-500">Cargando sistema clínico...</p>
         </div>
       </div>

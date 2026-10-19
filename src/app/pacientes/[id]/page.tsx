@@ -157,7 +157,7 @@ function PatientDetailContent({
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900">
-                Clínica Psicológica MenteSana
+                Clínica Noguera
               </h1>
               <p className="text-xs font-semibold text-slate-600 mt-0.5">
                 Expediente Clínico & Registro de Evolución Terapéutica

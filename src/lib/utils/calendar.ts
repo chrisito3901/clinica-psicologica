@@ -24,7 +24,7 @@ export function generateGoogleCalendarUrl(appointment: Appointment): string {
     appointment.motivo ? `Objetivo / Motivo: ${appointment.motivo}` : "",
     appointment.notas ? `Notas clínicas previas: ${appointment.notas}` : "",
     "",
-    "Gestión realizada desde Clínica MenteSana",
+    "Gestión realizada desde Clínica Noguera",
   ]
     .filter(Boolean)
     .join("\n");
@@ -51,16 +51,16 @@ export function downloadIcsFile(appointment: Appointment) {
 
   const patientName = appointment.patients?.nombre || "Paciente";
   const summary = `Sesión Psicológica: ${patientName}`;
-  const description = `Paciente: ${patientName}\\nMotivo: ${appointment.motivo || "Consulta terapéutica"}\\nClínica MenteSana`;
+  const description = `Paciente: ${patientName}\\nMotivo: ${appointment.motivo || "Consulta terapéutica"}\\nClínica Noguera`;
 
   const icsContent = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//MenteSana//Clinica Psicologica//ES",
+    "PRODID:-//Clinica Noguera//Clinica Psicologica//ES",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:appointment-${appointment.id}@mentesana.app`,
+    `UID:appointment-${appointment.id}@clinicanoguera.app`,
     `DTSTAMP:${formatIcsDate(new Date())}`,
     `DTSTART:${formatIcsDate(startDate)}`,
     `DTEND:${formatIcsDate(endDate)}`,

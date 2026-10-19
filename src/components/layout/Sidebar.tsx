@@ -115,7 +115,7 @@ export function Sidebar() {
         </div>
         <div>
           <h1 className="font-bold text-base text-slate-800 tracking-tight leading-none">
-            MenteSana
+            Clínica Noguera
           </h1>
           <p className="text-[11px] text-slate-400 font-medium mt-1">
             {isSecretary ? "Panel de Secretaría" : "Clínica de Psicología"}

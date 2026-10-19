@@ -1,4 +1,4 @@
-# 🧠 MenteSana - Plataforma de Gestión Clínica para Psicología
+# 🧠 Clínica Noguera - Plataforma de Gestión Clínica para Psicología
 
 SaaS y panel de administración privado diseñado especialmente para psicólogos y terapeutas. Permite gestionar expedientes clínicos, programar sesiones, dar seguimiento a la evolución terapéutica y recibir alertas de citas.
 

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MenteSana | Gestión Clínica de Psicología",
+  title: "Clínica Noguera | Gestión Clínica de Psicología",
   description: "Plataforma integral para psicólogos: expedientes clínicos, agenda interactiva, notas de evolución y gestión de pacientes.",
 };
 
