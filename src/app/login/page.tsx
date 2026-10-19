@@ -39,9 +39,13 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setError(error.message === "Invalid login credentials"
-          ? "Correo electrónico o contraseña incorrectos."
-          : error.message);
+        if (error.message === "Invalid login credentials") {
+          setError("Correo electrónico o contraseña incorrectos.");
+        } else if (error.message === "Email not confirmed") {
+          setError("Este correo aún no está confirmado. Fue registrado antes de desactivar la opción. Confírmalo en Supabase (en la sección Users) o revisa tu bandeja de entrada.");
+        } else {
+          setError(error.message);
+        }
       } else if (data.session) {
         router.push("/dashboard");
         router.refresh();
